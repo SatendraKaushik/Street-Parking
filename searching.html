@@ -21,7 +21,7 @@
             </div>
         </div>
 
-        <div id="booking-container" style="display: none;">
+        <div id="booking-container">
             <div id="booking-details">
                 <h2>Confirm Parking Spot</h2>
                 <p>Location: <span id="location-name"></span></p>
@@ -111,7 +111,7 @@
                         addParkingSpots(parkingSpots);
 
                         // Display the booking form
-                        displayBookingForm(null); // Pass null to hide the form initially
+                        displayBookingForm(location);
                     } else {
                         resultsContainer.innerHTML = 'No results found.';
                     }
@@ -122,6 +122,8 @@
                     // resultsContainer.innerHTML = 'An error occurred while fetching data.';
                 });
         }
+
+        
 
         function generateRandomParkingSpots(centerCoordinates) {
             const numSpots = 5; // Number of random parking spots to generate
@@ -181,8 +183,17 @@
                 // Add a click event handler to display details when the user clicks on the marker
                 Microsoft.Maps.Events.addHandler(parkingPin, 'click', function () {
                     selectedParkingSpot = parkingSpot;
-                    displayBookingForm(selectedParkingSpot);
-                    // ... (your existing code for displaying details) ...
+                    const infobox = new Microsoft.Maps.Infobox(location, {
+                        title: parkingSpot.name,
+                        description: `
+                            ${parkingSpot.details}<br>
+                            Empty Slots: ${parkingSpot.emptySlots}<br>
+                            Booked Slots: ${parkingSpot.bookedSlots}
+                            ${!parkingSpot.booked ? `<button onclick="displayBookingForm()">Book Slot</button>` : ''}
+                        `,
+                    });
+                    infobox.setOptions({ visible: true });
+                    map.entities.push(infobox);
                 });
 
                 // Add the parking spot pushpin to the map
@@ -195,20 +206,13 @@
             });
         }
 
-        function displayBookingForm(parkingSpot) {
+        function displayBookingForm() {
             const bookingContainer = document.getElementById('booking-container');
-            const locationName = document.getElementById('location-name');
-            const bookButton = document.getElementById('book-button');
+            bookingContainer.style.display = 'block';
 
-            if (parkingSpot) {
-                // If a parking spot is selected, display the booking form
-                bookingContainer.style.display = 'block';
-                locationName.textContent = parkingSpot.name;
-                bookButton.disabled = parkingSpot.booked;
-            } else {
-                // If no parking spot is selected, hide the booking form
-                bookingContainer.style.display = 'none';
-            }
+            const locationName = document.getElementById('location-name');
+            locationName.textContent = selectedParkingSpot.name;
+            document.getElementById('book-button').disabled = selectedParkingSpot.booked;
         }
 
         let countdownInterval;
@@ -248,45 +252,47 @@
         }
 
         function bookParkingSpot() {
-            const name = document.getElementById('name').value;
-            const contact = document.getElementById('contact').value;
-            const vehicleNumber = document.getElementById('vehicle-number').value;
+    const name = document.getElementById('name').value;
+    const contact = document.getElementById('contact').value;
+    const vehicleNumber = document.getElementById('vehicle-number').value;
 
-            // Here, you can implement the logic to book the parking spot
-            // You may send the booking information to your server or perform any other required actions.
+    // Here, you can implement the logic to book the parking spot
+    // You may send the booking information to your server or perform any other required actions.
 
-            alert(`Booking Confirmation:\nName: ${name}\nContact: ${contact}\nVehicle Number: ${vehicleNumber}`);
+    alert(`Booking Confirmation:\nName: ${name}\nContact: ${contact}\nVehicle Number: ${vehicleNumber}`);
 
-            // Update the booked and empty slots for the selected parking spot
-            if (selectedParkingSpot) {
-                selectedParkingSpot.booked = true;
-                selectedParkingSpot.emptySlots--; // Decrease empty slots by 1
-                selectedParkingSpot.bookedSlots++; 
-                // Update the displayed information for the selected parking spot
-                const infobox = new Microsoft.Maps.Infobox(new Microsoft.Maps.Location(
-                    selectedParkingSpot.coordinates[0],
-                    selectedParkingSpot.coordinates[1]
-                ), {
-                    title: selectedParkingSpot.name,
-                    description: `
-                        ${selectedParkingSpot.details}<br>
-                        Empty Slots: ${selectedParkingSpot.emptySlots}<br>
-                        Booked Slots: ${selectedParkingSpot.bookedSlots}
-                    `,
-                });
-                infobox.setOptions({ visible: true });
-                map.entities.push(infobox);
+    // Update the booked and empty slots for the selected parking spot
+    if (selectedParkingSpot) {
+        selectedParkingSpot.booked = true;
+        selectedParkingSpot.emptySlots--; // Decrease empty slots by 1
+        selectedParkingSpot.bookedSlots++; 
+        // Update the displayed information for the selected parking spot
+        const infobox = new Microsoft.Maps.Infobox(new Microsoft.Maps.Location(
+            selectedParkingSpot.coordinates[0],
+            selectedParkingSpot.coordinates[1]
+        ), {
+            title: selectedParkingSpot.name,
+            description: `
+                ${selectedParkingSpot.details}<br>
+                Empty Slots: ${selectedParkingSpot.emptySlots}<br>
+                Booked Slots: ${selectedParkingSpot.bookedSlots}
+               
+            `,
+        });
+        infobox.setOptions({ visible: true });
+        map.entities.push(infobox);
 
-                // Change the color of the booked parking spot to red
-                const parkingPin = map.entities.getPrimitives().filter(entity => entity instanceof Microsoft.Maps.Pushpin && entity.getTitle() === selectedParkingSpot.name)[0];
-                if (parkingPin) {
-                    parkingPin.setOptions({ color: 'red' });
-                }
-
-                // Start the countdown timer for 20 minutes
-                startCountdownTimer();
-            }
+        // Change the color of the booked parking spot to red
+        const parkingPin = map.entities.getPrimitives().filter(entity => entity instanceof Microsoft.Maps.Pushpin && entity.getTitle() === selectedParkingSpot.name)[0];
+        if (parkingPin) {
+            parkingPin.setOptions({ color: 'red' });
         }
+
+        // Start the countdown timer for 20 minutes
+        startCountdownTimer();
+    }
+}
+
     </script>
     <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?key=YOUR_BING_MAPS_API_KEY&callback=initMap' async defer></script>
 </body>
