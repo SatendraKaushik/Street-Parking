@@ -62,7 +62,7 @@ body{
 }
 #car{
     text-transform: capitalize;
-    background: rgba(44, 62, 80,0.6);
+ 
     position: absolute;
     padding: 20px;
     margin: 100px 0px 0px 50px;
