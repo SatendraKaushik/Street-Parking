@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@600&family=Merriweather:wght@700&family=Poppins:ital,wght@0,600;1,600&display=swap');
+
+body {
+    background: rgb(219, 214, 214);
+    font-family: 'Merriweather', serif;
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Kanit', sans-serif;
+    font-family: 'Merriweather', serif;
+    font-family: 'Poppins', sans-serif;
+
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+#search-form,
+#booking-container {
+    max-width: 400px;
+    padding: 20px;
+    background-color: #f3f3f3;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+ 
+}
+
+#search-form {
+    margin-right: 20px;
+}
+
+#booking-container {
+    display: none;
+}
+
+#results {
+    margin-top: 20px;
+}
+
+#map-container {
+    margin-top: 20px;
+    height: 100vh;
+}
+
+#booking-details {
+    margin-bottom: 10px;
+}
+
+.book-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.book-button.disabled {
+    background-color: gray;
+    cursor: not-allowed;
+}

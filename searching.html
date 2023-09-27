@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Poppins:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+    <title>Parking Location Search</title>
+    <link rel="stylesheet" href="searching.css">
+</head>
+<body>
+    <h1>Parking Location Search</h1>
+    <div class="container">
+        <div id="search-form">
+            <label for="location">Enter a location:</label>
+            <input type="text" id="location" placeholder="E.g., City Center">
+            <button onclick="searchParking()">Search</button>
+            <div id="results">
+                <!-- Results will be displayed here -->
+            </div>
+        </div>
+
+        <div id="booking-container" style="display: none;">
+            <div id="booking-details">
+                <h2>Confirm Parking Spot</h2>
+                <p>Location: <span id="location-name"></span></p>
+                <label for="name">Your Name:</label>
+                <input type="text" id="name" placeholder="Kaushik"><br>
+                <label for="contact">Contact Number:</label>
+                <input type="text" id="contact" placeholder="9350473120"><br>
+                <label for="vehicle-number">Enter Vehicle Number:</label>
+                <input type="text" id="vehicle-number" placeholder="Up 16 4042">
+                <button id="book-button" class="book-button" disabled onclick="bookParkingSpot()">Book Parking</button>
+                <div id="countdown-timer"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="map-container">
+        <!-- Map will be displayed here -->
+    </div>
+
+    <script>
+        let map;
+        let selectedParkingSpot;
+
+        function initMap() {
+            map = new Microsoft.Maps.Map(document.getElementById('map-container'), {
+                center: new Microsoft.Maps.Location(0, 0), // Default center
+                zoom: 10 // Default zoom level
+            });
+
+            // Get the user's current location if available
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    const userLocation = new Microsoft.Maps.Location(position.coords.latitude, position.coords.longitude);
+
+                    // Create a pushpin for the user's location
+                    const userPin = new Microsoft.Maps.Pushpin(userLocation, {
+                        title: 'Your Location',
+                        color: 'blue'
+                    });
+
+                    // Add the user's location pushpin to the map
+                    map.entities.push(userPin);
+
+                    // Set the map center to the user's location
+                    map.setView({ center: userLocation, zoom: 15 });
+
+                    // Generate random parking spots near the user's location
+                    const parkingSpots = generateRandomParkingSpots([position.coords.latitude, position.coords.longitude]);
+
+                    // Add these parking spots to the map
+                    addParkingSpots(parkingSpots);
+                });
+            }
+        }
+
+        function searchParking() {
+            const locationInput = document.getElementById('location').value;
+
+            // Replace 'YOUR_BING_MAPS_API_KEY' with your actual API key
+            const apiKey = 'ArSGwElpgs65UXUwCnZ4ibhLzkmxuScTxz0rCq_kgJy35pa2tSq229GIMzMPVQ8P';
+
+            // Create a URL for the Bing Maps API request
+            const apiUrl = `https://dev.virtualearth.net/REST/v1/Locations?q=${encodeURIComponent(locationInput)}&key=${apiKey}`;
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const resultsContainer = document.getElementById('results');
+                    resultsContainer.innerHTML = '';
+
+                    if (data.resourceSets.length > 0 && data.resourceSets[0].resources.length > 0) {
+                        const location = data.resourceSets[0].resources[0];
+
+                        // Display the location details
+                        const resultElement = document.createElement('div');
+                        resultElement.innerHTML = `
+                            <h2>${location.name}</h2>
+                            <p>Address: ${location.address.formattedAddress}</p>`;
+                        resultsContainer.appendChild(resultElement);
+
+                        // Center the map on the found location
+                        map.setView({ center: new Microsoft.Maps.Location(location.point.coordinates[0], location.point.coordinates[1]), zoom: 15 });
+
+                        // Generate random parking spot markers with different pricing, details, and slot information (example locations)
+                        const parkingSpots = generateRandomParkingSpots(location.point.coordinates);
+
+                        addParkingSpots(parkingSpots);
+
+                        // Display the booking form
+                        displayBookingForm(null); // Pass null to hide the form initially
+                    } else {
+                        resultsContainer.innerHTML = 'No results found.';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    const resultsContainer = document.getElementById('results');
+                    // resultsContainer.innerHTML = 'An error occurred while fetching data.';
+                });
+        }
+
+        function generateRandomParkingSpots(centerCoordinates) {
+            const numSpots = 5; // Number of random parking spots to generate
+            const parkingSpots = [];
+
+            for (let i = 0; i < numSpots; i++) {
+                // Generate random coordinates around the center location
+                const randomLatOffset = (Math.random() - 0.5) * 0.02;
+                const randomLngOffset = (Math.random() - 0.5) * 0.02;
+                const coordinates = [centerCoordinates[0] + randomLatOffset, centerCoordinates[1] + randomLngOffset];
+
+                // Generate random pricing, details, empty slots, and booked slots
+                const price = `Rs${(Math.random() * 10).toFixed(2)} per hour`;
+                const details = generateRandomDetails(); // Generate random details
+                const emptySlots = Math.floor(Math.random() * 20); // Random number of empty slots
+                const bookedSlots = Math.floor(Math.random() * 20); // Random number of booked slots
+
+                parkingSpots.push({
+                    name: `Parking Spot ${i + 1}`,
+                    coordinates: coordinates,
+                    price: price,
+                    details: details,
+                    emptySlots: emptySlots,
+                    bookedSlots: bookedSlots,
+                    booked: false // Initially, no spots are booked
+                });
+            }
+
+            return parkingSpots;
+        }
+
+        function generateRandomDetails() {
+            const detailsList = [
+                'This parking spot is conveniently located near shopping centers.',
+                'Enjoy easy access to restaurants and cafes from this parking spot.',
+                'Close to parks and recreational areas.',
+                'Downtown parking spot with a great view of the city.',
+                'Near public transportation for easy commuting.'
+            ];
+
+            const randomIndex = Math.floor(Math.random() * detailsList.length);
+
+            return detailsList[randomIndex];
+        }
+
+        function addParkingSpots(parkingSpots) {
+            parkingSpots.forEach(parkingSpot => {
+                const location = new Microsoft.Maps.Location(parkingSpot.coordinates[0], parkingSpot.coordinates[1]);
+
+                // Create a pushpin for the parking spot
+                const parkingPin = new Microsoft.Maps.Pushpin(location, {
+                    title: parkingSpot.name,
+                    subTitle: `Price: ${parkingSpot.price}`,
+                    color: parkingSpot.booked ? 'red' : 'green' // Set the color based on the booking status
+                });
+
+                // Add a click event handler to display details when the user clicks on the marker
+                Microsoft.Maps.Events.addHandler(parkingPin, 'click', function () {
+                    selectedParkingSpot = parkingSpot;
+                    displayBookingForm(selectedParkingSpot);
+                    // ... (your existing code for displaying details) ...
+                });
+
+                // Add the parking spot pushpin to the map
+                map.entities.push(parkingPin);
+
+                // Update the color of booked parking spots
+                if (parkingSpot.booked) {
+                    parkingPin.setOptions({ color: 'red' });
+                }
+            });
+        }
+
+        function displayBookingForm(parkingSpot) {
+            const bookingContainer = document.getElementById('booking-container');
+            const locationName = document.getElementById('location-name');
+            const bookButton = document.getElementById('book-button');
+
+            if (parkingSpot) {
+                // If a parking spot is selected, display the booking form
+                bookingContainer.style.display = 'block';
+                locationName.textContent = parkingSpot.name;
+                bookButton.disabled = parkingSpot.booked;
+            } else {
+                // If no parking spot is selected, hide the booking form
+                bookingContainer.style.display = 'none';
+            }
+        }
+
+        let countdownInterval;
+
+        function startCountdownTimer() {
+            let remainingTime = 20 * 60; // 20 minutes in seconds
+
+            // Function to update the timer and display remaining time
+            function updateTimer() {
+                const minutes = Math.floor(remainingTime / 60);
+                const seconds = remainingTime % 60;
+
+                const timerElement = document.getElementById('countdown-timer');
+                timerElement.textContent = `Remaining Time: ${minutes}m ${seconds}s`;
+
+                if (remainingTime <= 0) {
+                    clearInterval(countdownInterval);
+                    timerElement.textContent = 'Booking time expired.';
+
+                    // Reset the booked parking spot color to green
+                    if (selectedParkingSpot) {
+                        selectedParkingSpot.booked = false;
+                        const parkingPin = map.entities.getPrimitives().filter(entity => entity instanceof Microsoft.Maps.Pushpin && entity.getTitle() === selectedParkingSpot.name)[0];
+                        if (parkingPin) {
+                            parkingPin.setOptions({ color: 'green' });
+                        }
+                        selectedParkingSpot = undefined;
+                    }
+                }
+
+                remainingTime--;
+            }
+
+            // Update the timer every second
+            updateTimer();
+            countdownInterval = setInterval(updateTimer, 1000);
+        }
+
+        function bookParkingSpot() {
+            const name = document.getElementById('name').value;
+            const contact = document.getElementById('contact').value;
+            const vehicleNumber = document.getElementById('vehicle-number').value;
+
+            // Here, you can implement the logic to book the parking spot
+            // You may send the booking information to your server or perform any other required actions.
+
+            alert(`Booking Confirmation:\nName: ${name}\nContact: ${contact}\nVehicle Number: ${vehicleNumber}`);
+
+            // Update the booked and empty slots for the selected parking spot
+            if (selectedParkingSpot) {
+                selectedParkingSpot.booked = true;
+                selectedParkingSpot.emptySlots--; // Decrease empty slots by 1
+                selectedParkingSpot.bookedSlots++; 
+                // Update the displayed information for the selected parking spot
+                const infobox = new Microsoft.Maps.Infobox(new Microsoft.Maps.Location(
+                    selectedParkingSpot.coordinates[0],
+                    selectedParkingSpot.coordinates[1]
+                ), {
+                    title: selectedParkingSpot.name,
+                    description: `
+                        ${selectedParkingSpot.details}<br>
+                        Empty Slots: ${selectedParkingSpot.emptySlots}<br>
+                        Booked Slots: ${selectedParkingSpot.bookedSlots}
+                    `,
+                });
+                infobox.setOptions({ visible: true });
+                map.entities.push(infobox);
+
+                // Change the color of the booked parking spot to red
+                const parkingPin = map.entities.getPrimitives().filter(entity => entity instanceof Microsoft.Maps.Pushpin && entity.getTitle() === selectedParkingSpot.name)[0];
+                if (parkingPin) {
+                    parkingPin.setOptions({ color: 'red' });
+                }
+
+                // Start the countdown timer for 20 minutes
+                startCountdownTimer();
+            }
+        }
+    </script>
+    <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?key=YOUR_BING_MAPS_API_KEY&callback=initMap' async defer></script>
+</body>
+</html>

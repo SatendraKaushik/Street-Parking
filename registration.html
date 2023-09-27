@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Parking</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="regist.css">
+</head>
+<body style="margin-left: 30rem;">
+   
+    <div class="header">
+
+       
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 text-center mb-3">
+                    <h2 class="register">Registration Form</h2>
+                    <form action="save.php" method="post">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="owner">User Name:</span>
+                        </div>
+                        <input type="text" name="owner_name" class="form-control">
+                    </div>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"> Email address:</span>
+                        </div>
+                        <input type="email" name="vehicle_name" class="form-control">
+                    </div>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"> phone Number:</span>
+                        </div>
+                        <input type="text" name="vehicle_number" class="form-control">
+                    </div>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"> Date:</span>
+                        </div>
+                        <input type="datetime-local" name="entry_date" class="form-control">
+                    </div>
+                    
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Create password</span>
+                        </div>
+                        <input type="password"  class="form-control"  pattern="[0-9]+">
+                    </div>
+                   <input type="submit" class="btn btn-primary my-3">
+                   </form>
+                </div>
+              
+            </div>
+        </div> 
+             
+    </div>
+   
+</body>
+</html>
+
+ 
